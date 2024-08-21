@@ -53,13 +53,7 @@ export function SearchPage(): JSX.Element {
             </div>
           }
         >
-          <Suspense
-            fallback={
-              <div className="loading" data-test="suspense">
-                Loading...
-              </div>
-            }
-          >
+          <Suspense fallback={<div className="loading">Loading...</div>}>
             <ProductList filter={currentFilter} page={currentPage} />
           </Suspense>
         </ErrorBoundary>

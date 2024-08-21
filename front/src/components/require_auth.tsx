@@ -1,4 +1,5 @@
-import {Suspense} from "react";
+import {Suspense, useContext} from "react";
+import {CartContext} from "@/providers/cart";
 import {Link, Navigate, Outlet} from "react-router-dom";
 import {useMutation} from "@tanstack/react-query";
 import {logout} from "@/api/auth";
@@ -31,6 +32,9 @@ function Header({currentUser}: {currentUser: User}): JSX.Element {
     },
   });
 
+  const {cart} = useContext(CartContext);
+  const totalQuantity = Object.values(cart).reduce((a, b) => a + b, 0);
+
   return (
     <div className="flex flex-row p-4 justify-between items-center bg-violet-600">
       <Link className="text-2xl text-white" to="/">
@@ -44,6 +48,20 @@ function Header({currentUser}: {currentUser: User}): JSX.Element {
         <button className="text-white" onClick={() => mutation.mutate()}>
           Logout
         </button>
+        <Link
+          data-test="link-to-orders"
+          className="text-xl text-white"
+          to="/orders"
+        >
+          Orders
+        </Link>
+        <Link
+          data-test="link-to-cart"
+          className="text-xl text-white"
+          to="/cart"
+        >
+          Cart {totalQuantity}
+        </Link>
       </div>
     </div>
   );

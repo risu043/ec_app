@@ -1,19 +1,33 @@
+import React from "react";
 import {useSuspenseQuery} from "@tanstack/react-query";
-import {searchProducts} from "@/api/search";
-import {useNavigate} from "react-router-dom";
+import {cartProducts} from "@/api/cart";
 import {useContext, useEffect} from "react";
 import {CartContext} from "@/providers/cart";
 
-export function ProductList({page, filter}: {page: number; filter: string}) {
-  const {
-    data: {products, hitCount},
-  } = useSuspenseQuery({
-    queryKey: ["products", page, filter],
-    queryFn: () => searchProducts({page, filter}),
+export function CartList({productIds}: {productIds: number[]}) {
+  const {data: products} = useSuspenseQuery({
+    queryKey: ["products", {ids: productIds}],
+    queryFn: () => cartProducts(productIds),
   });
+
+  const {cart} = useContext(CartContext);
+  const totalQuantity = Object.values(cart).reduce((a, b) => a + b, 0);
+
+  const totalPrice = products.reduce(
+    (sum, product) => sum + (cart[product.id] || 0) * product.price,
+    0,
+  );
+
+  if (!products) {
+    return <p>No products found.</p>;
+  }
 
   return (
     <>
+      <div data-test="cart-summary">
+        <p data-test="total-price">Total price: {totalPrice} coins</p>
+        <p data-test="total-quantity">Total quantity: {totalQuantity}</p>
+      </div>
       <ul data-test="product-list">
         {products.map(product => {
           function formatDate(dateString: string | null): string {
@@ -49,10 +63,7 @@ export function ProductList({page, filter}: {page: number; filter: string}) {
                 <p data-test="product-price">{product.price} coins</p>
               </div>
               <div className="mt-4">
-                <QuantityInput
-                  data-test="product-quantity-input"
-                  productId={product.id}
-                />
+                <QuantityInput productId={product.id} />
                 <p data-test="product-stock-quantity">
                   stock: {product.quantity}
                 </p>
@@ -61,57 +72,7 @@ export function ProductList({page, filter}: {page: number; filter: string}) {
           );
         })}
       </ul>
-      <Pagination page={page} filter={filter} hitCount={hitCount} />
     </>
-  );
-}
-
-function Pagination({
-  page,
-  filter,
-  hitCount,
-}: {
-  page: number;
-  filter: string;
-  hitCount: number;
-}): JSX.Element {
-  const isLast = hitCount <= page * 10;
-  const navigate = useNavigate();
-
-  const handlePrevPageClick = (): void => {
-    if (filter === "") {
-      navigate(`/?page=${page - 1}`);
-      return;
-    }
-    navigate(`/?page=${page - 1}&filter=${filter}`);
-  };
-
-  const handleNextPageClick = (): void => {
-    if (filter === "") {
-      navigate(`/?page=${page + 1}`);
-      return;
-    }
-    navigate(`/?page=${page + 1}&filter=${filter}`);
-  };
-
-  return (
-    <div>
-      <button
-        onClick={handlePrevPageClick}
-        disabled={page === 1}
-        data-test="prev-button"
-      >
-        Prev
-      </button>
-      <span data-test="current-page">{page}</span>
-      <button
-        onClick={handleNextPageClick}
-        disabled={isLast}
-        data-test="next-button"
-      >
-        Next
-      </button>
-    </div>
   );
 }
 

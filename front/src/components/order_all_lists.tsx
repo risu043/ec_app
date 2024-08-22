@@ -1,10 +1,8 @@
 import {Order} from "@/types";
 
-export function OrderAllList({orders, year}: {year: string; orders: Order[]}) {
-  const targetYear = year;
-
-  const selectedOrder = orders.filter(order =>
-    order.createdAt.includes(targetYear),
+export function OrderAllList({orders, year}: {year: number; orders: Order[]}) {
+  const selectedOrder = orders.filter(
+    order => new Date(order.createdAt).getFullYear() === year,
   );
 
   function formatDate(dateString: string | null): string {
